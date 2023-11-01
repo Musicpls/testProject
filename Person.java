@@ -6,7 +6,7 @@ import java.util.Date;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class Person implements Accountable{
+public class Person implements Accountable {
     Scanner console = new Scanner(System.in);
     private String login;
     private String name;
@@ -122,7 +122,7 @@ public class Person implements Accountable{
         System.out.println("You replenished the balance of your account for: " + NumberFormat.getCurrencyInstance().format(add) + " the money was debited from your card: " + cartNumberToLong);
         balance += add;
         System.out.println("Your account balance is: " + balance);
-        addTransaction(String.format("A deposit was made at "+ formatter.format(dateTime) + NumberFormat.getCurrencyInstance().format(add)));
+        addTransaction(String.format("A deposit was made at " + formatter.format(dateTime) + NumberFormat.getCurrencyInstance().format(add)));
         showTransactionInfo();
     }
 

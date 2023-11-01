@@ -2,7 +2,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Scanner;
 
-public class JabaBank implements Bankable{
+public class JabaBank implements Bankable {
     Scanner console = new Scanner(System.in);
     ArrayList<Person> persons;
     Person person;
@@ -68,7 +68,7 @@ public class JabaBank implements Bankable{
     public void changePassword(Person person) {
         System.out.println("To change the password, enter the old password:");
         password = console.next();
-        while (password.equalsIgnoreCase(person.getPassword())) {
+        while (!password.equalsIgnoreCase(person.getPassword())) {
             System.out.println("You have entered an incorrect password, enter the correct password");
             password = console.next();
         }
