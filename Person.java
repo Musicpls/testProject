@@ -1,20 +1,26 @@
+import java.text.NumberFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Map;
+import java.util.Date;
 import java.util.Objects;
 import java.util.Scanner;
 
-public class Person implements AccountActions{
+public class Person implements Accountable{
     Scanner console = new Scanner(System.in);
+    private String login;
     private String name;
     private String lastName;
     private String password;
     private static int id = 0;
     private double balance;
-    Person(String name, String lastName, String login, String password){
+    private ArrayList<String> transactions = new ArrayList<>(5);
+
+    public Person(String login, String name, String lastName, String password) {
+        this.login = login;
         this.name = name;
         this.lastName = lastName;
         this.password = password;
-        id++;
         System.out.println("We added a man to the database with the name: " + name);
         System.out.println("Surname: " + lastName);
         System.out.println("Login: " + login);
@@ -22,13 +28,14 @@ public class Person implements AccountActions{
         System.out.println("-----------------------------------");
     }
 
-    public double getBalance() {
-        return balance;
+    public String getLogin() {
+        return login;
     }
 
-    public void setBalance(double balance) {
-        this.balance = balance;
+    public void setLogin(String login) {
+        this.login = login;
     }
+
     public String getName() {
         return name;
     }
@@ -53,89 +60,83 @@ public class Person implements AccountActions{
         this.password = password;
     }
 
-
-    public static Person registration(JabaBank jabaBank, String login){
-        Scanner console = new Scanner(System.in);
-        while (jabaBank.personsMap.containsKey(login)){
-            System.out.println("This login already exists, enter another login:");
-            login = console.next();
-        }
-        System.out.println("Enter first name:");
-        String firstName = console.next();
-        System.out.println("Enter last name:");
-        String lastName = console.next();
-        System.out.println("Set password");
-        String password = console.next();
-        return new Person(firstName, lastName, login, password);
-    }
-    public void authorization(JabaBank jabaBank, String login){
-        System.out.println("The system login has been found, now enter the password:");
-
-        String password = console.next();
-
-        while (!jabaBank.personsMap.get(login).getPassword().equals(password)) {
-            System.out.println("You have entered an incorrect password, enter the password again:");
-            password = console.next();
-        }
-        System.out.println("You are logged into your account, select the option you want:");
-        System.out.println("1. Show acc info.");
-        System.out.println("2. Make a deposit.");
-        System.out.println("3. Change password.");
-        System.out.println("4. Delete account");
-        System.out.println("Press any other key to exit");
-    }
-
-    public void changePassword(JabaBank jabaBank, String login) {
-        System.out.println("To change the password, enter the previous password:");
-        String pass = console.next();
-        while (!jabaBank.personsMap.get(login).getPassword().equals(pass)){
-            System.out.println("You have entered an incorrect password, enter the password again:");
-            password = console.next();
-        }
-        System.out.println("You have entered the password correctly, enter a new password:");
-        password = console.next();
-        jabaBank.personsMap.get(login).setPassword(password);
-        System.out.println("The password has been updated!");
+    @Override
+    public String toString() {
+        return "Person{" + "console=" + console + ", login='" + login + '\'' + ", name='" + name + '\'' + ", lastName='" + lastName + '\'' + ", password='" + password + '\'' + ", balance=" + balance + '}';
     }
 
     @Override
-    public void showInfo(JabaBank jabaBank, String login) {
-        System.out.println("Firs name: " + jabaBank.personsMap.get(login).getName());
-        System.out.println("Last name: " + jabaBank.personsMap.get(login).getLastName());
-        System.out.println("Your account balance: " + jabaBank.personsMap.get(login).getBalance());
-        System.out.println("Your password:" + jabaBank.personsMap.get(login).getPassword());
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Person person = (Person) o;
+        return Double.compare(person.balance, balance) == 0 && Objects.equals(console, person.console) && Objects.equals(login, person.login) && Objects.equals(name, person.name) && Objects.equals(lastName, person.lastName) && Objects.equals(password, person.password);
     }
 
     @Override
-    public void showBalance(JabaBank jabaBank, String login) {
-        System.out.println("Your account balance: " + jabaBank.personsMap.get(login).getBalance());
+    public int hashCode() {
+        return Objects.hash(console, login, name, lastName, password, balance);
     }
 
-    @Override
-    public void addFunds(JabaBank jabaBank, String login) {
-        System.out.println("Enter the amount you want to add:");
-        double funds = 0;
-        while (!console.hasNextInt()){
-            System.out.println("Enter a number without letters:");
-            funds = console.nextInt();
+    public void accInfo() {
+        System.out.println("----------Account info----------");
+        System.out.println("Login: " + login);
+        System.out.println("Name: " + name);
+        System.out.println("LastName: " + lastName);
+        System.out.println("Balance: " + balance);
+        System.out.println("The last five transactions: ");
+        showTransactionInfo();
+    }
+
+    private void addTransaction(String message) {
+
+        transactions.add(0, message);
+        if (transactions.size() > 5) {
+            transactions.remove(5);
+            transactions.trimToSize();
         }
-        balance += funds;
-        System.out.println("Amount successfully added");
-        System.out.println("Your account balance is now:" + jabaBank.personsMap.get(login).getBalance());
     }
 
-    @Override
-    public void remove(JabaBank jabaBank, String login) {
-        System.out.println("If you want to delete the account, then enter the word \"yes\"");
-        System.out.println("if you don't want to delete the profile, press any other letters");
-        String yes = "yes";
-        String no = console.next();
-        if (yes.toUpperCase().equals(no.toUpperCase())){
-            System.out.println("Delete profile with login: " + login);
-            jabaBank.personsMap.remove(login);
-            System.out.println("Profile deleted.");
-        }else {
-            System.out.println("You changed your mind about deleting the profile with login: " +login);
+    public void makeDeposit() {
+        LocalDateTime dateTime = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy. H:m ");
+        double add;
+        String cartNumber;
+        String cartCVC;
+        System.out.println("Specify the amount you want to add to the account:");
+        add = console.nextInt();
+        System.out.println("Enter the number of the card from which the account will be replenished: ");
+        cartNumber = console.next();
+        while (isValidCartNumber(cartNumber)) {
+            System.out.println("The card number is not in the correct format, enter the card number correctly:");
+            cartNumber = console.next(); //There should just be numbers
         }
+        long cartNumberToLong = Long.parseLong(cartNumber);
+
+        System.out.println("Enter the cvc code:");
+        cartCVC = console.next();
+        while (isValidCartCVC(cartCVC)) {
+            System.out.println("The CVC number is not in the correct format, enter the card number correctly:");
+            cartCVC = console.next();
+        }
+        System.out.println("You replenished the balance of your account for: " + NumberFormat.getCurrencyInstance().format(add) + " the money was debited from your card: " + cartNumberToLong);
+        balance += add;
+        System.out.println("Your account balance is: " + balance);
+        addTransaction(String.format("A deposit was made at "+ formatter.format(dateTime) + NumberFormat.getCurrencyInstance().format(add)));
+        showTransactionInfo();
+    }
+
+    void showTransactionInfo() {
+        for (String transaction : transactions) {
+            System.out.println(transaction);
+        }
+    }
+
+    boolean isValidCartNumber(String cartNumber) {
+        return !(cartNumber == null | cartNumber.replaceAll(" ", "").length() == 16);
+    }
+
+    boolean isValidCartCVC(String cartCvc) {
+        return !(cartCvc == null | cartCvc.length() == 3);
     }
 }
